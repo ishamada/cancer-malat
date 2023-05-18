@@ -1,14 +1,24 @@
 #BiocManager::install("TCGAbiolinks")
 #BiocManager::install("TCGAutils")
+#BiocManager::install("curatedTCGAData")
+#BiocManager::install("TCGAutils")
 
 library(curatedTCGAData)
 library(TCGAutils)
 library(MultiAssayExperiment)
 library(patchwork)
 
-library(TCGAbiolinks)
+head(
+  curatedTCGAData(
+    diseaseCode = "COAD", assays = "*", version = "1.1.38"
+  )
+)
+
+
+#library(TCGAbiolinks)
 library(dplyr)
 
+browseVignettes("curatedTCGAData")
 
 # Get all codes on TCGA
 data('diseaseCodes', package = "TCGAutils")
@@ -55,28 +65,28 @@ head(sampleTypes)
 
 
 
-readData2 = curatedTCGAData(c("COAD"), assays =  c("RNASeq2Gene", "RNASeq2GeneNorm"), 
+COADData = curatedTCGAData(c("COAD"), assays =  c("RNASeq2Gene", "RNASeq2GeneNorm"),
                             version = '2.0.1',
                             dry.run = FALSE)
 
-
 # Preform simple exploration on the dataset
-typeof(readData2)
-rownames(readData2)
-colnames(readData2)
-colData(readData2)
+typeof(COADData)
+rownames(COADData)
+colnames(COADData)
+colData(COADData)
 getClinicalNames("COAD")
-table(table(sampleMap(readData2)$primary)) 
+table(table(sampleMap(COADData)$primary)) 
 
 # Get how many sample types in each experiment/cancer 
-sampleTables(readData2)
-sampleTables(readData2,vial = TRUE)
+sampleTables(COADData)
+sampleTables(COADData,vial = TRUE)
 
 # extract assay data
 
-coadraw.data <- (assay(readData2[[1]]))
+coadraw.data <- (assay(COADData[[1]]))
 
 as.integer(coadraw.data)
+round(coadraw.data)
 
 coad.pritumor.data <- coadraw.data[,which(substr(colnames(coadraw.data),14,16) == "01A")]
 
@@ -89,16 +99,15 @@ coad.normal.data <- coadraw.data[,which(substr(colnames(coadraw.data),14,16) == 
 # Select EMT gene markers , cancer stem cells , metastatic and find correlation
 
 
-summarise()
 summarise(test, avg = mean(test$`TCGA-2W-A8YY-01A-11R-A37O-07`))
 test <- as.data.frame(CESC.cancer)
 
 test["MALAT1",]
 
 # Get all samples IDs from the first cancer
-colnames(readData2[[1]])
+colnames(COADData[[1]])
 # Get the RNA assays of normal sample/patients from first cancer CESC
-CESC.normal <- assay(readData2[[1]])[,which(substr(colnames(readData2[[1]]),14,16) == "11A")]
+CESC.normal <- assay(COADData[[1]])[,which(substr(colnames(COADData[[1]]),14,16) == "11A")]
 
 dim(CESC.normal)
 
@@ -108,7 +117,7 @@ CESC.normal <- log2(CESC.normal + 1)
 CESC.normal.malat <- as.data.frame(CESC.normal["MALAT1",])
 
 # Get the RNA assays of diseased sample/patients from first cancer CESC
-CESC.cancer <- assay(readData2[[1]])[,which(substr(colnames(readData2[[1]]),14,16) == "01A")]
+CESC.cancer <- assay(COADData[[1]])[,which(substr(colnames(COADData[[1]]),14,16) == "01A")]
 
 dim(CESC.cancer)
 
